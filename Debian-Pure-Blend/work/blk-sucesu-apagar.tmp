@@ -1,4 +1,4 @@
 label sucesu-apagar
-	menu label Sucesu: APAGAR DISCOS (so apaga, NAO instala)
+	menu label SUCESU: APAGAR DISCOS (formata)
 	kernel /install.amd/vmlinuz
 	append modules=debian-edu-install-udeb desktop=xfce vga=788 initrd=/install.amd/gtk/initrd.gz preseed/file=/cdrom/sucesu/apagar.cfg debian-installer/locale=pt_BR.UTF-8 keyboard-configuration/xkb-keymap=br --- quiet 

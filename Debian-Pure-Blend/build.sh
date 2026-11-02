@@ -102,8 +102,8 @@ add_grub() {       # $1=texto do menu  $2=arquivo cfg ; retorna 1 se não conseg
   { printf '\n'; cat "$WORK/blk-grub-$2.tmp"; } >> "$GRUB"
 }
 
-T_APAGAR="Sucesu: APAGAR DISCOS (so apaga, NAO instala)"
-T_VERIF="Sucesu: VERIFICAR DISCOS (so le, nao altera nada)"
+T_APAGAR="SUCESU: APAGAR DISCOS (formata)"
+T_VERIF="SUCESU: VERIFICAR DISCOS e HARDWARE"
 
 add_isolinux sucesu-apagar   "$T_APAGAR" apagar.cfg
 add_isolinux sucesu-verificar "$T_VERIF" verificar.cfg

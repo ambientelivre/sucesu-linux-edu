@@ -1,56 +1,98 @@
 #!/bin/sh
 . /cdrom/sucesu/comum.sh
+travar
 
-# Força o TTY para o principal visível no boot se o TTY 6 falhar
-TTY=/dev/tty1
-exec >/var/log/sucesu-apagar.log 2>&1
-
-say "=== APAGAR DISCOS === dryrun=$DRYRUN"
-limpa; tela "\n\033[1;31m  SUCESU - PREPARANDO O APAGAMENTO SEGURO DOS DISCOS...\033[0m\n\n"
+say "=== APAGAR DISCOS === console=$TTY dryrun=$DRYRUN"
+limpa; tela "\n  SUCESU - preparando o apagamento...\n"
 
 achar_midia
 aguardar_discos
-[ -n "$DISCOS" ] || abortar "Nenhum disco interno encontrado!"
+[ -n "$DISCOS" ] || abortar "nenhum disco interno encontrado (drivers ainda nao carregados?)"
+cab_maquina
+lista_discos_txt
 
-LIST=""; RESUMO=""
+# Simulacao: so mostra o que seria apagado
+if [ "$DRYRUN" = 1 ]; then
+  fim "\n  [SIMULACAO] Nada sera escrito.\n\n$CAB\n  Discos que seriam apagados:\n\n$LD\n"
+fi
+
+# Confirmacao obrigatoria: sem digitar SIM nada e apagado
+limpa
+tela "\n  =======================================================\n     SUCESU - APAGAR DISCOS\n  =======================================================\n\n$CAB\n  ESTES DISCOS SERAO APAGADOS (todos os dados, sem volta):\n\n$LD\n  Para confirmar, digite SIM e pressione ENTER.\n  Para cancelar, desligue a maquina.\n\n  > "
+ler_linha
+if [ "$LINHA" != "SIM" ]; then
+  say "Cancelado pelo operador"
+  fim "\n  Cancelado. NADA foi apagado.\n\n  Pressione ENTER para desligar.\n"
+fi
+
+# Inicia o apagamento de todos os discos em paralelo
+LIST=""
 for n in $DISCOS; do
   size=$(cat "/sys/block/$n/size")
-  gib=$((size / 2097152))
-  if [ "$(cat "/sys/block/$n/queue/rotational" 2>/dev/null)" = "1" ]; then tipo=HDD; else tipo="SSD/NVMe"; fi
-
-  say "APAGANDO /dev/$n ($gib GiB, $tipo)"
-  # Executa o dd mostrando progresso visível
-  dd if=/dev/zero of="/dev/$n" bs=4M conv=fsync status=progress >> "$LOG" 2>&1 &
+  say "APAGANDO /dev/$n"
+  dd if=/dev/zero of="/dev/$n" bs=4M conv=fsync >> "$LOG" 2>&1 &
   LIST="$LIST $n:$!:$((size * 512))"
 done
 
-# Tela de progresso interativa atualizada a cada 3 segundos
+# Tela de progresso (atualiza a cada 5 s)
 INICIO=$(date +%s)
 while :; do
   ativo=0
   now=$(date +%s); el=$(( now - INICIO ))
   scr='\033[H\033[2J'
-  scr="$scr\n  \033[1;33mSUCESU - APAGAMENTO SEGURO DE DISCOS (NAO DESLIGUE A MAQUINA)\033[0m\n"
-  scr="$scr  Tempo decorrido: $(( el / 60 )) min\n\n"
+  scr="$scr\n  SUCESU - APAGAMENTO EM ANDAMENTO (nao desligue a maquina)\n\n$CAB\n"
+  scr="$scr  Decorrido: $(( el / 60 )) min\n\n"
   for item in $LIST; do
     n=${item%%:*}; rest=${item#*:}; pid=${rest%%:*}; total=${rest#*:}
+    disco_desc "$n"
     if vivo "$pid"; then
       ativo=1
       if [ -r "/proc/$pid/io" ]; then
         wr=$(grep '^wchar' "/proc/$pid/io" 2>/dev/null | cut -d' ' -f2)
         pct=$(( ${wr:-0} / (total / 100 + 1) ))
         [ "$pct" -gt 100 ] && pct=100
-        scr="$scr  /dev/$n -> $(barra $pct)\n"
+        extra=""
+        [ "$pct" -gt 0 ] && extra="  falta ~$(( el * (100 - pct) / pct / 60 )) min"
+        scr="$scr  /dev/$n ($D_GIB GiB $D_TIPO)\n  $(barra $pct)$extra\n\n"
       else
-        scr="$scr  /dev/$n -> em andamento...\n"
+        scr="$scr  /dev/$n ($D_GIB GiB $D_TIPO)  em andamento (sem percentual neste kernel)\n\n"
       fi
     else
-      scr="$scr  /dev/$n -> $(barra 100) [CONCLUIDO]\n"
+      scr="$scr  /dev/$n ($D_GIB GiB $D_TIPO)\n  $(barra 100)  gravacao concluida\n\n"
     fi
   done
   tela "$scr"
   [ "$ativo" = 0 ] && break
-  sleep 3
+  sleep 5
 done
 
-# Finalização e verificação igual ao seu script original...
+for item in $LIST; do
+  rest=${item#*:}; pid=${rest%%:*}
+  wait "$pid" 2>/dev/null
+  say "dd de ${item%%:*} terminou (codigo $?; 'No space left' e esperado)"
+done
+say "Gravacao concluida em $(( ($(date +%s) - INICIO) / 60 )) min. Verificando..."
+tela '\n  Verificando amostras dos discos...\n'
+
+# Verifica amostras e pede ao kernel para reler as tabelas de particao
+FALHA=0; RESUMO=""
+for item in $LIST; do
+  n=${item%%:*}
+  disco_desc "$n"
+  verifica "$n"
+  case "$VER_STATUS" in
+    ok)    RESUMO="$RESUMO  /dev/$n  $D_GIB GiB  VERIFICADO (amostras zeradas)\n" ;;
+    dados) RESUMO="$RESUMO  /dev/$n  $D_GIB GiB  FALHA: ha dados nao zerados\n"; FALHA=1 ;;
+    *)     RESUMO="$RESUMO  /dev/$n  $D_GIB GiB  apagado (verificacao indisponivel)\n" ;;
+  esac
+  say "$n: $VER_STATUS"
+  command -v blockdev >/dev/null 2>&1 && blockdev --rereadpt "/dev/$n" 2>/dev/null
+done
+
+if [ "$FALHA" = 1 ]; then
+  say "RESULTADO: FALHA"
+  fim "\n  =================================================\n     SUCESU: FALHA NO APAGAMENTO\n  =================================================\n\n$CAB\n$RESUMO\n  NAO use esta maquina. Pressione ENTER para desligar.\n"
+fi
+
+say "RESULTADO: OK"
+fim "\n  =================================================\n     SUCESU: APAGAMENTO CONCLUIDO - OK\n  =================================================\n\n$CAB\n$RESUMO\n  Para conferir depois: menu 'VERIFICAR DISCOS'.\n  Pressione ENTER para DESLIGAR.\n"
