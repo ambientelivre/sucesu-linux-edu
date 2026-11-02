@@ -1,0 +1,5 @@
+menuentry 'Sucesu: VERIFICAR DISCOS (so le, nao altera nada)' {
+    set background_color=black
+    linux    /install.amd/vmlinuz modules=debian-edu-install-udeb desktop=xfce vga=788 preseed/file=/cdrom/sucesu/verificar.cfg debian-installer/locale=pt_BR.UTF-8 keyboard-configuration/xkb-keymap=br --- quiet 
+    initrd   /install.amd/gtk/initrd.gz
+}

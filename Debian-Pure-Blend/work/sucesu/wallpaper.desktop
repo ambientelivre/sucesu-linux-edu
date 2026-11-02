@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=Sucesu Wallpaper
+Exec=/usr/local/bin/sucesu-wallpaper.sh
