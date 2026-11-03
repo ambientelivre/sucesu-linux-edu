@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Debian-Pure-Blend/sucesu/wallpaper.jpg" alt="SUCESU PR - Linux Edu" width="100%">
+  <img src="docs/wallpaper-readme.jpg" alt="SUCESU PR - Linux Edu" width="600">
 </p>
 
 # SUCESU Linux Edu
