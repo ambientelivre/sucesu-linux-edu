@@ -1,11 +1,13 @@
 <p align="center">
-  <img src="Debian-Pure-Blend/sucesu/wallpaper.jpg" alt="SUCESU PR - Linux Edu" width="600">
+  <img src="Debian-Pure-Blend/sucesu/wallpaper.jpg" alt="SUCESU PR - Linux Edu" width="100%">
 </p>
 
 # SUCESU Linux Edu
 
 ISO personalizada do **Debian Edu 13 (Trixie)** para as máquinas do projeto **SUCESU PR**.
 Ela é a imagem oficial do Debian Edu com três ajustes: o wallpaper do projeto (área de trabalho e tela de login) e duas ferramentas de preparação de discos no menu de boot.
+
+**Quer só instalar?** [Baixe a ISO pronta](#baixar-a-iso-pronta) e grave no pendrive.
 
 - **Projetos:** Click Escolas Sociais
 - **Requisitos:** zerar o HD e instalar
@@ -49,6 +51,16 @@ O `build.sh` também gera, a cada execução, os arquivos de preseed (`sucesu.cf
 
 ---
 
+## Baixar a ISO pronta
+
+Se você só quer gravar o pendrive, baixe a imagem já gerada (versão 2026.11.02, baseada na `debian-edu-13.7.0-amd64-BD-1.iso`):
+
+<https://www.ambientelivre.com.br/treinamentos/social/sucesu-pr-debian-edu-13.7.0-amd64-BD-1-2026.11.02.iso>
+
+O arquivo tem cerca de 17 GB. Depois do download, siga direto para [Gravar no pendrive](#gravar-no-pendrive). Para gerar a imagem você mesmo (por exemplo, a partir de outra versão do Debian Edu), veja a seção seguinte.
+
+---
+
 ## Gerar a imagem
 
 ### Requisitos
@@ -57,11 +69,11 @@ O `build.sh` também gera, a cada execução, os arquivos de preseed (`sucesu.cf
   ```bash
   sudo apt install xorriso
   ```
-- A ISO oficial do Debian Edu 13 (use a mesma versão em que o projeto foi testado: **13.7.0, netinst**), baixada em <https://www.debian.org/devel/debian-edu/>. Confira o SHA256 com o arquivo `SHA256SUMS` publicado no site:
+- A ISO oficial do Debian Edu 13, baixada em <https://www.debian.org/devel/debian-edu/>. A imagem usada nos testes foi a **completa, `debian-edu-13.7.0-amd64-BD-1.iso`** (13.7.0, imagem BD-1). A netinst (`debian-edu-13.7.0-amd64-netinst.iso`) tem o mesmo formato de menu e deve funcionar, mas não foi validada na versão atual do script. Confira o SHA256 com o arquivo `SHA256SUMS` publicado no site:
   ```bash
-  sha256sum debian-edu-13.7.0-amd64-netinst.iso
+  sha256sum debian-edu-13.7.0-amd64-BD-1.iso
   ```
-- Espaço livre em disco: pelo menos o tamanho da ISO original (cerca de 1 GB na netinst; cerca de 17 GB na versão completa).
+- Espaço livre em disco: o `build.sh` grava uma ISO nova do mesmo tamanho da original. Com a BD-1 (cerca de 17 GB), reserve **uns 40 GB livres** (original + nova + folga). Na netinst, cerca de 1 GB por ISO.
 
 ### Passos
 
@@ -70,14 +82,14 @@ git clone https://github.com/ambientelivre/sucesu-linux-edu.git
 cd sucesu-linux-edu/Debian-Pure-Blend
 
 # coloque a ISO original nesta pasta e rode:
-./build.sh                                   # netinst (nome padrão debian-edu-13.7.0-amd64-netinst.iso)
-./build.sh debian-edu-13.7.0-amd64-XXXX.iso  # outra imagem, por exemplo a completa (use o nome real do arquivo)
+./build.sh debian-edu-13.7.0-amd64-BD-1.iso   # imagem completa BD-1 (a testada)
+./build.sh                                    # sem argumento: usa debian-edu-13.7.0-amd64-netinst.iso
 ```
 
-A ISO nova aparece na mesma pasta, com o nome `sucesu-pr-<nome-da-iso-original>-<data>.iso`. Ao final, o script mostra:
+A ISO nova aparece na mesma pasta, com o nome `sucesu-pr-<nome-da-iso-original>-<data>.iso`. Com a BD-1, a montagem leva alguns minutos. Ao final, o script mostra:
 
 ```
-Pronto: .../sucesu-pr-debian-edu-13.7.0-amd64-netinst-AAAA.MM.DD.iso
+Pronto: .../sucesu-pr-debian-edu-13.7.0-amd64-BD-1-AAAA.MM.DD.iso
 Entradas APAGAR/VERIFICAR (modo texto) -> BIOS: SIM | UEFI: SIM
 ```
 
@@ -105,13 +117,13 @@ Se a ISO original for outra versão do Debian Edu, o formato dos menus pode muda
 
 ## Gravar no pendrive
 
-Use um pendrive de **2 GB ou mais** para a netinst (**32 GB ou mais**, USB 3.0, para a versão completa). **Todos os dados do pendrive serão apagados.**
+Para a BD-1 use um pendrive de **32 GB ou mais**, de preferência USB 3.0 de boa qualidade (a gravação leva bem mais tempo que a da netinst). Para a netinst, 2 GB bastam. **Todos os dados do pendrive serão apagados.**
 
 ### Linux
 
 ```bash
 lsblk                                   # identifique o pendrive (ex.: /dev/sdb). CONFIRA o dispositivo
-sudo dd if=sucesu-pr-debian-edu-13.7.0-amd64-netinst-AAAA.MM.DD.iso of=/dev/sdX bs=4M status=progress conv=fsync
+sudo dd if=sucesu-pr-debian-edu-13.7.0-amd64-BD-1-AAAA.MM.DD.iso of=/dev/sdX bs=4M status=progress conv=fsync
 sync
 ```
 
@@ -147,7 +159,7 @@ Para conferir depois, use **Sucesu: VERIFICAR DISCOS**, que só lê os discos e 
 
 ## Instalar o desktop
 
-Dê boot pelo pendrive e use a entrada de instalação do Debian Edu (por exemplo, **Graphical install**). A instalação precisa de internet, pois a netinst baixa os pacotes. Em redes com várias máquinas, um `apt-cacher-ng` na rede local acelera bastante.
+Dê boot pelo pendrive e use a entrada de instalação do Debian Edu (por exemplo, **Graphical install**). Com a BD-1, a maior parte dos pacotes vem da própria imagem, então a instalação depende pouco da velocidade da internet. Na netinst a instalação baixa os pacotes e precisa de rede; nesse caso, em redes com várias máquinas, um `apt-cacher-ng` na rede local acelera bastante.
 
 ### Perfil
 
@@ -187,10 +199,10 @@ Para **avaliação e testes**, o padrão é usuário **`sucesu`**, senha **`suce
 
 ## Estado do projeto e limitações conhecidas
 
-- **Versão inicial.** Testada em VirtualBox. Recomenda-se um piloto em 1 ou 2 máquinas reais (de preferência um notebook e um desktop) antes de instalar em série.
+- **Versão inicial.** Testada em VirtualBox, com a imagem BD-1. Recomenda-se um piloto em 1 ou 2 máquinas reais (de preferência um notebook e um desktop) antes de instalar em série.
 - **Monitores.** O wallpaper é 16:9 (3840x2160). Em monitores 4:3 e 5:4 as laterais são cortadas. As logos ficam dentro da área segura e a caixa de login fica no canto superior esquerdo para não cobrir a imagem.
 - **Home em rede (perfil Workstation).** O wallpaper é aplicado uma vez por usuário, e o marcador fica no home do usuário. Em máquinas com home em rede, isso não foi testado.
-- **Atualizações.** A netinst instala os pacotes mais recentes do espelho; a ISO completa traz os pacotes da data do lançamento. Rode `apt upgrade` depois de instalar.
+- **Atualizações.** A BD-1 traz os pacotes da data do lançamento (a netinst instala os mais recentes do espelho). Rode `apt upgrade` depois de instalar.
 
 ---
 
