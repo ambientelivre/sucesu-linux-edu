@@ -163,7 +163,7 @@ Dê boot pelo pendrive e use a entrada de instalação do Debian Edu (por exempl
 
 ### Perfil
 
-Escolha o perfil do Debian Edu conforme o ambiente da escola (por exemplo, *Standalone* para uma máquina independente, ou *Workstation* para máquina ligada a um servidor principal).
+Quando o instalador perguntar o tipo de instalação (perfil do Debian Edu), escolha **Standalone**, que aparece como **Autônomo** no instalador em português. É a máquina independente, que não depende de um servidor principal do Debian Edu na rede. Não escolha *Main Server*, *Workstation* nem os demais perfis.
 
 ### Particionamento (obrigatório)
 
@@ -201,7 +201,7 @@ Para **avaliação e testes**, o padrão é usuário **`sucesu`**, senha **`suce
 
 - **Versão inicial.** Testada em VirtualBox, com a imagem BD-1. Recomenda-se um piloto em 1 ou 2 máquinas reais (de preferência um notebook e um desktop) antes de instalar em série.
 - **Monitores.** O wallpaper é 16:9 (3840x2160). Em monitores 4:3 e 5:4 as laterais são cortadas. As logos ficam dentro da área segura e a caixa de login fica no canto superior esquerdo para não cobrir a imagem.
-- **Home em rede (perfil Workstation).** O wallpaper é aplicado uma vez por usuário, e o marcador fica no home do usuário. Em máquinas com home em rede, isso não foi testado.
+- **Perfil.** Só o perfil Standalone (Autônomo) é considerado. O perfil Workstation, com home em rede, não foi testado: o wallpaper é aplicado uma vez por usuário e o marcador fica no home dele.
 - **Atualizações.** A BD-1 traz os pacotes da data do lançamento (a netinst instala os mais recentes do espelho). Rode `apt upgrade` depois de instalar.
 
 ---
